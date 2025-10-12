@@ -18,24 +18,13 @@ detected_OS := $(strip $(detected_OS))
 $(info detected_OS is "$(detected_OS)")
 
 ifeq ($(detected_OS), Linux)
-
-  GCCFLAGS = -g
-  SIMCOMPILER = gcc $(GCCFLAGS)
-  DYLIB_FLAGS = -shared -fPIC
   DYLIB_EXT = so
   PDCFLAGS = -sdkpath $(SDK)
 endif
 
 ifeq ($(detected_OS), Darwin)
-
-  CLANGFLAGS = -g
-  SIMCOMPILER = clang $(CLANGFLAGS)
-  DYLIB_FLAGS = -dynamiclib -rdynamic
   DYLIB_EXT = dylib
   PDCFLAGS=
-  # Uncomment to build a binary that works with Address Sanitizer
-  #CLANGFLAGS += -fsanitize=address
-
 endif
 
 TRGT = arm-none-eabi-
@@ -95,14 +84,15 @@ DEFS	= $(DDEFS) $(UDEFS)
 LIBS	= $(DLIBS) $(ULIBS)
 MCFLAGS = -mthumb -mcpu=$(MCU) $(FPU)
 
-ODINFLAGS = -no-bounds-check -disable-assert -no-crt -no-entry-point -no-rpath -no-thread-local -source-code-locations:none
+ODINFLAGS = -no-entry-point -no-thread-local -default-to-nil-allocator
+ODINFLAGS_ARM = $(ODINFLAGS) -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -no-crt -o:speed
 
 CPFLAGS  = $(MCFLAGS) $(COPT) -gdwarf-2 -Wall -Wno-unused -Wstrict-prototypes -Wno-unknown-pragmas -fverbose-asm -Wdouble-promotion -mword-relocations -fno-common
 CPFLAGS += -ffunction-sections -fdata-sections -Wa,-ahlms=$(BUILDDIR)/$(notdir $(<:.c=.lst)) -DTARGET_PLAYDATE=1 -DTARGET_EXTENSION=1
 
 LLC_FLAGS = $(OPT) -mtriple=thumbv7em-none-eabihf -mcpu=$(MCU) -mattr=+fp-armv8d16sp -float-abi=hard -relocation-model=pic
 
-LDFLAGS  = -nostartfiles $(MCFLAGS) -T$(LDSCRIPT) -Wl,-Map=$(BUILDDIR)/pdex.map,--cref,--gc-sections,--no-warn-mismatch,--emit-relocs,--defsym=__exidx_start=0,--defsym=__exidx_end=0,--defsym=_exit=0,--defsym=_kill=0,--defsym=_getpid=0 $(LIBDIR)
+LDFLAGS  = -nostartfiles $(MCFLAGS) -T$(LDSCRIPT) -Wl,-Map=$(BUILDDIR)/pdex.map,--cref,--gc-sections,--no-warn-mismatch,--emit-relocs,--defsym=__aeabi_unwind_cpp_pr0=0,--defsym=__aeabi_unwind_cpp_pr1=0,--defsym=__aeabi_unwind_cpp_pr2=0 $(LIBDIR)
 
 # Odin object files
 ODIN_OBJ_FILES = $(BUILDDIR)/odin-main.o $(BUILDDIR)/odin-builtin.o $(BUILDDIR)/odin-runtime-core.o $(BUILDDIR)/odin-runtime-internal.o $(BUILDDIR)/odin-runtime-procs.o $(BUILDDIR)/odin-runtime-default_allocators_nil.o $(BUILDDIR)/odin-runtime-random_generator.o
@@ -123,24 +113,22 @@ simulator: simulator_bin $(BUILDDIR)/Source/pdxinfo
 	$(PDC) $(PDCFLAGS) $(BUILDDIR)/Source $(PRODUCT)
 
 simulator_bin: | MKBUILDDIR
-	odin build . -build-mode:shared -out:$(BUILDDIR)/Source/pdex.${DYLIB_EXT} -default-to-nil-allocator
+	odin build . -build-mode:shared -out:$(BUILDDIR)/Source/pdex.${DYLIB_EXT} $(ODINFLAGS)
 
 device: device_bin $(BUILDDIR)/Source/pdxinfo
 	$(PDC) $(PDCFLAGS) $(BUILDDIR)/Source $(PRODUCT)
 
-device_bin: $(BUILDDIR)/setup.o odin_objs $(LDSCRIPT) | MKBUILDDIR
-	$(CC) $(BUILDDIR)/setup.o $(ODIN_OBJ_FILES) $(LDFLAGS) $(LIBS) -o $(BUILDDIR)/Source/pdex.elf
+device_bin: $(BUILDDIR)/setup.o $(BUILDDIR)/odin.o $(LDSCRIPT) | MKBUILDDIR
+	$(CC) $(BUILDDIR)/setup.o $(BUILDDIR)/odin.o $(LDFLAGS) $(LIBS) -o $(BUILDDIR)/Source/pdex.elf
 
 $(BUILDDIR)/setup.o: $(SDK)/C_API/buildsupport/setup.c | MKBUILDDIR
 	$(CC) -c $(CPFLAGS) -I . $(INCDIR) $< -o $@
 
-.PHONY: odin_objs
-odin_objs: | MKBUILDDIR
-	odin build . -out:odin -o:none -build-mode:llvm-ir -target:freestanding_arm32 -default-to-nil-allocator $(ODINFLAGS) 
-	mv -f *.ll $(BUILDDIR)/
-	for ll in $(BUILDDIR)/*.ll; do \
-		llc $(LLC_FLAGS) -filetype=obj -o $${ll%.ll}.o $$ll; \
-	done
+.PHONY: $(BUILDDIR)/odin.o
+$(BUILDDIR)/odin.o: | MKBUILDDIR
+	odin build . -out:odin.ll  -build-mode:llvm-ir -target:freestanding_arm32  $(ODINFLAGS_ARM)
+	mv -f odin.ll $(BUILDDIR)/odin.ll
+	llc $(LLC_FLAGS) -filetype=obj -o $(BUILDDIR)/odin.o $(BUILDDIR)/odin.ll
 
 clean:
 	-rm -rf $(BUILDDIR)
