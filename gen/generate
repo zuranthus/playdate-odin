@@ -1,0 +1,35 @@
+if [ -z "$PLAYDATE_SDK_PATH" ]; then
+	echo "Error: PLAYDATE_SDK_PATH is not set"
+	echo "Set it to your Playdate SDK installation path."
+	exit 1
+fi
+
+if [ -z "$BINDGEN" ]; then
+	echo "Error: BINDGEN is not set"
+	echo "Set it to the odin-bindgen binary."
+	echo "If you are missing the binary, compile it from: https://github.com/karl-zylinski/odin-c-bindgen"
+	exit 1
+fi
+
+rm -rf tmp
+mkdir -p tmp
+
+# copy c-api headers from playdate sdk
+cp -r ${PLAYDATE_SDK_PATH}/C_API tmp/input
+# unwrap code from #if TARGET_EXTENSION ... #endif
+find tmp/input -name "*.h" -exec perl -i -pe 's/^#if TARGET_EXTENSION$//; s/^#endif$//' {} +
+# translate headers to odin
+${BINDGEN} gen
+
+# clean up generated odin code
+# remove duplicated struct{} definitions - seems to be a bug in bindgen
+find tmp/output -name "*.odin" -type f -exec perl -i -0777 -pe '
+	s/^(\w+)(\s*::\s*struct\s*\{\})(?:.*?\n)*?(?=^\1\2)/REMOVED\n/gm;
+	s/^REMOVED\n//gm;
+	' {} +
+# remove duplicate definitions from specific files - these are defined in several places in the C API
+perl -i -0777 -pe 's/^LCDSprite :: struct \{\}\n//gm' tmp/output/pd_api_lua.odin
+perl -i -0777 -pe 's/^AccessRequestCallback :: proc "c" \(i32, rawptr\)\n//gm' tmp/output/pd_api_sys.odin
+perl -i -0777 -pe 's/^HTTPConnection :: struct \{\}\n//gm' tmp/output/pd_api_gfx.odin
+perl -i -0777 -pe 's/^TCPConnection :: struct \{\}\n//gm' tmp/output/pd_api_gfx.odin
+perl -i -0777 -pe 's/^FilePlayer :: struct \{\}\n//gm' tmp/output/pd_api_gfx.odin

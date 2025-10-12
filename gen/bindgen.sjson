@@ -1,0 +1,59 @@
+package_name = "playdate"
+
+inputs = [
+	"../tmp/input",
+	"../tmp/input/pd_api",
+]
+
+output_folder = "../tmp/output"
+
+remove_type_prefix = "playdate_"
+
+opaque_types = [
+	"SDFile",
+	"LCDBitmap",
+	"LCDBitmapTable",
+	"LCDFont",
+	"LCDFontData",
+	"LCDFontPage",
+	"LCDFontGlyph",
+	"LCDTileMap",
+	"LCDVideoPlayer",
+	"LCDStreamPlayer",
+	"LCDSprite",
+	"CWCollisionInfo",
+	"CWItemInfo",
+	"HTTPConnection",
+	"TCPConnection",
+	"SoundSource",
+	"FilePlayer",
+	"HTTPConnection",
+	"TCPConnection",
+	"PDMenuItem",
+	"AudioSample",
+	"SoundChannel",
+	"SoundEffect",
+	"PDSynth",
+	"PDSynthSignal",
+	"PDSynthSignalValue",
+	"PDSynthLFO",
+	"PDSynthEnvelope",
+	"SamplePlayer",
+	"SoundSequence",
+	"SequenceTrack",
+	"TwoPoleFilter",
+	"ControlSignal",
+	"PDSynthInstrument",
+	"OnePoleFilter",
+	"BitCrusher",
+	"LuaUDObject",
+	"RingModulator",
+	"DelayLine",
+	"DelayLineTap",
+	"Overdrive",
+	
+
+
+
+
+]
