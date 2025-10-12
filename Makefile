@@ -1,11 +1,5 @@
-PRODUCT = HelloWorld.pdx
-
 HEAP_SIZE      = 8388208
 STACK_SIZE     = 61800
-
-# Odin source files
-ODIN_SRC = main.odin
-
 
 # Locate the SDK
 SDK = ${PLAYDATE_SDK_PATH}
