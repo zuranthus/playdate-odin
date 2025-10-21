@@ -1,6 +1,6 @@
 package main
 
-import playdate ".."
+import playdate "../playdate"
 
 @(export)
 eventHandler :: proc "c" (pd: ^playdate.PlaydateAPI, event: playdate.PDSystemEvent, arg: i32) -> i32 {

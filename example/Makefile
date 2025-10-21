@@ -1,3 +1,3 @@
 PRODUCT = Example.pdx
 
-include ../buildsupport/Makefile.inc
+include ../playdate/buildsupport/Makefile.inc
