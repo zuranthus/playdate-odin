@@ -1,0 +1,5 @@
+name=Example
+author=Your Name
+description=Example Odin project for Playdate
+bundleID=com.example.playdate-odin
+imagePath=

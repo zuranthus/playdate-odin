@@ -1,17 +1,21 @@
-ODINFLAGS_SIM = -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone 
-ODINFLAGS_DEV = -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone
+ifeq ($(PRODUCT),)
+$(error PRODUCT is not set. Please set PRODUCT in your Makefile before including this file)
+endif
 
-HEAP_SIZE      = 8388208
-STACK_SIZE     = 61800
+ODINFLAGS_SIM ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone
+ODINFLAGS_DEV ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone
+
+HEAP_SIZE      ?= 8388208
+STACK_SIZE     ?= 61800
 
 # Locate the SDK
 SDK = ${PLAYDATE_SDK_PATH}
 ifeq ($(SDK),)
-	SDK = $(shell egrep '^\s*SDKRoot' ~/.Playdate/config | head -n 1 | cut -c9-)
+SDK = $(shell egrep '^\s*SDKRoot' ~/.Playdate/config | head -n 1 | cut -c9-)
 endif
 
 ifeq ($(SDK),)
-	$(error SDK path not found; set ENV value PLAYDATE_SDK_PATH)
+$(error SDK path not found; set ENV value PLAYDATE_SDK_PATH)
 endif
 
 detected_OS := $(shell uname -s)
@@ -20,15 +24,15 @@ detected_OS := $(strip $(detected_OS))
 $(info detected_OS is "$(detected_OS)")
 
 ifeq ($(detected_OS), Linux)
-	PDSYM = 
-	DYLIB_EXT = so
-	PDCFLAGS = -sdkpath $(SDK)
+PDSYM = 
+DYLIB_EXT = so
+PDCFLAGS = -sdkpath $(SDK)
 endif
 
 ifeq ($(detected_OS), Darwin)
-	PDSYM = $(SDK)/bin/Playdate\ Simulator.app/Contents/MacOS/Playdate\ Simulator
-	DYLIB_EXT = dylib
-	PDCFLAGS=
+PDSYM = $(SDK)/bin/Playdate\ Simulator.app/Contents/MacOS/Playdate\ Simulator
+DYLIB_EXT = dylib
+PDCFLAGS=
 endif
 
 TRGT = arm-none-eabi-
@@ -42,7 +46,8 @@ PDC = $(SDK)/bin/pdc
 CC   = $(GCC)$(TRGT)gcc -g3
 
 BUILDDIR  = build
-LDSCRIPT = $(patsubst ~%,$(HOME)%,$(SDK)/C_API/buildsupport/link_map.ld)
+PLAYDATE_BUILD_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
+LDSCRIPT = $(PLAYDATE_BUILD_DIR)link_map.ld
 
 LDFLAGS  = -nostartfiles -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-sp-d16 -D__FPU_USED=1 -T$(LDSCRIPT) \
 					-Wl,-Map=$(BUILDDIR)/pdex.map,--cref,--gc-sections,--no-warn-mismatch,--emit-relocs,--defsym=__aeabi_unwind_cpp_pr0=0 $(LIBDIR)
