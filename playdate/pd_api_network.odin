@@ -7,15 +7,8 @@
 //
 package playdate
 
-
-
-
-
-// pd_api_http_h :: 
-
 HTTPConnection :: struct {}
-
-TCPConnection :: struct {}
+TCPConnection  :: struct {}
 
 PDNetErr :: enum i32 {
 	OK                  = 0,
@@ -40,73 +33,70 @@ PDNetErr :: enum i32 {
 }
 
 WifiStatus :: enum u32 {
-	NotConnected, //!< Not connected to an AP
-	Connected,    //!< Device is connected to an AP
-	NotAvailable, //!< A connection has been attempted and no configured AP was available
+	NotConnected = 0, //!< Not connected to an AP
+	Connected    = 1, //!< Device is connected to an AP
+	NotAvailable = 2, //!< A connection has been attempted and no configured AP was available
 }
 
-AccessRequestCallback :: proc "c" (i32, rawptr)
-
-HTTPConnectionCallback :: proc "c" (^HTTPConnection)
-
-HTTPHeaderCallback :: proc "c" (^HTTPConnection, cstring, cstring)
+AccessRequestCallback  :: proc "c" (allowed: i32, userdata: rawptr)
+HTTPConnectionCallback :: proc "c" (connection: ^HTTPConnection)
+HTTPHeaderCallback     :: proc "c" (conn: ^HTTPConnection, key: cstring, value: cstring)
 
 http :: struct {
-	requestAccess:               proc "c" (cstring, i32, i32, cstring, AccessRequestCallback, rawptr) -> accessReply,
-	newConnection:               proc "c" (cstring, i32, i32) -> ^HTTPConnection,
-	retain:                      proc "c" (^HTTPConnection) -> ^HTTPConnection,
-	release:                     proc "c" (^HTTPConnection),
-	setConnectTimeout:           proc "c" (^HTTPConnection, i32),
-	setKeepAlive:                proc "c" (^HTTPConnection, i32),
-	setByteRange:                proc "c" (^HTTPConnection, i32, i32),
-	setUserdata:                 proc "c" (^HTTPConnection, rawptr),
-	getUserdata:                 proc "c" (^HTTPConnection) -> rawptr,
-	get:                         proc "c" (^HTTPConnection, cstring, cstring, i32) -> PDNetErr,
-	post:                        proc "c" (^HTTPConnection, cstring, cstring, i32, cstring, i32) -> PDNetErr,
-	query:                       proc "c" (^HTTPConnection, cstring, cstring, cstring, i32, cstring, i32) -> PDNetErr,
-	getError:                    proc "c" (^HTTPConnection) -> PDNetErr,
-	getProgress:                 proc "c" (^HTTPConnection, ^i32, ^i32),
-	getResponseStatus:           proc "c" (^HTTPConnection) -> i32,
-	size_t:                      proc "c" (^i32) -> proc "c" (^HTTPConnection) -> i32,
-	setReadTimeout:              proc "c" (^HTTPConnection, i32),
-	setReadBufferSize:           proc "c" (^HTTPConnection, i32),
-	read:                        proc "c" (^HTTPConnection, rawptr, u32) -> i32,
-	close:                       proc "c" (^HTTPConnection),
-	setHeaderReceivedCallback:   proc "c" (^HTTPConnection, HTTPHeaderCallback),
-	setHeadersReadCallback:      proc "c" (^HTTPConnection, HTTPConnectionCallback),
-	setResponseCallback:         proc "c" (^HTTPConnection, HTTPConnectionCallback),
-	setRequestCompleteCallback:  proc "c" (^HTTPConnection, HTTPConnectionCallback),
-	setConnectionClosedCallback: proc "c" (^HTTPConnection, HTTPConnectionCallback),
+	requestAccess:               proc "c" (server: cstring, port: i32, usessl: i32, purpose: cstring, requestCallback: AccessRequestCallback, userdata: rawptr) -> accessReply,
+	newConnection:               proc "c" (server: cstring, port: i32, usessl: i32) -> ^HTTPConnection,
+	retain:                      proc "c" (http: ^HTTPConnection) -> ^HTTPConnection,
+	release:                     proc "c" (http: ^HTTPConnection),
+	setConnectTimeout:           proc "c" (connection: ^HTTPConnection, ms: i32),
+	setKeepAlive:                proc "c" (connection: ^HTTPConnection, keepalive: i32),
+	setByteRange:                proc "c" (connection: ^HTTPConnection, start: i32, end: i32),
+	setUserdata:                 proc "c" (connection: ^HTTPConnection, userdata: rawptr),
+	getUserdata:                 proc "c" (connection: ^HTTPConnection) -> rawptr,
+	get:                         proc "c" (conn: ^HTTPConnection, path: cstring, headers: cstring, headerlen: i32) -> PDNetErr,
+	post:                        proc "c" (conn: ^HTTPConnection, path: cstring, headers: cstring, headerlen: i32, body: cstring, bodylen: i32) -> PDNetErr,
+	query:                       proc "c" (conn: ^HTTPConnection, method: cstring, path: cstring, headers: cstring, headerlen: i32, body: cstring, bodylen: i32) -> PDNetErr,
+	getError:                    proc "c" (connection: ^HTTPConnection) -> PDNetErr,
+	getProgress:                 proc "c" (conn: ^HTTPConnection, read: ^i32, total: ^i32),
+	getResponseStatus:           proc "c" (connection: ^HTTPConnection) -> i32,
+	size_t:                      proc "c" (conn: ^HTTPConnection, getBytesAvailable: ^i32) -> proc "c" (connection: ^HTTPConnection) -> i32,
+	setReadTimeout:              proc "c" (conn: ^HTTPConnection, ms: i32),
+	setReadBufferSize:           proc "c" (conn: ^HTTPConnection, bytes: i32),
+	read:                        proc "c" (conn: ^HTTPConnection, buf: rawptr, buflen: u32) -> i32,
+	close:                       proc "c" (connection: ^HTTPConnection),
+	setHeaderReceivedCallback:   proc "c" (connection: ^HTTPConnection, headercb: HTTPHeaderCallback),
+	setHeadersReadCallback:      proc "c" (connection: ^HTTPConnection, callback: HTTPConnectionCallback),
+	setResponseCallback:         proc "c" (connection: ^HTTPConnection, callback: HTTPConnectionCallback),
+	setRequestCompleteCallback:  proc "c" (connection: ^HTTPConnection, callback: HTTPConnectionCallback),
+	setConnectionClosedCallback: proc "c" (connection: ^HTTPConnection, callback: HTTPConnectionCallback),
 }
 
-TCPConnectionCallback :: proc "c" (^TCPConnection, PDNetErr)
-
-TCPOpenCallback :: proc "c" (^TCPConnection, PDNetErr, rawptr)
+TCPConnectionCallback :: proc "c" (connection: ^TCPConnection, err: PDNetErr)
+TCPOpenCallback       :: proc "c" (conn: ^TCPConnection, err: PDNetErr, ud: rawptr)
 
 tcp :: struct {
-	requestAccess:               proc "c" (cstring, i32, i32, cstring, AccessRequestCallback, rawptr) -> accessReply,
-	newConnection:               proc "c" (cstring, i32, i32) -> ^TCPConnection,
-	retain:                      proc "c" (^TCPConnection) -> ^TCPConnection,
-	release:                     proc "c" (^TCPConnection),
-	getError:                    proc "c" (^TCPConnection) -> PDNetErr,
-	setConnectTimeout:           proc "c" (^TCPConnection, i32),
-	setUserdata:                 proc "c" (^TCPConnection, rawptr),
-	getUserdata:                 proc "c" (^TCPConnection) -> rawptr,
-	open:                        proc "c" (^TCPConnection, TCPOpenCallback, rawptr) -> PDNetErr,
-	close:                       proc "c" (^TCPConnection) -> PDNetErr,
-	setConnectionClosedCallback: proc "c" (^TCPConnection, TCPConnectionCallback),
-	setReadTimeout:              proc "c" (^TCPConnection, i32),
-	setReadBufferSize:           proc "c" (^TCPConnection, i32),
-	size_t:                      proc "c" (^i32) -> proc "c" (^TCPConnection) -> i32,
-	read:                        proc "c" (^TCPConnection, rawptr, i32) -> i32, // returns # of bytes read, or PDNetErr on error
-	write:                       proc "c" (^TCPConnection, rawptr, i32) -> i32, // returns # of bytes sent, or PDNetErr on error
+	requestAccess:               proc "c" (server: cstring, port: i32, usessl: i32, purpose: cstring, requestCallback: AccessRequestCallback, userdata: rawptr) -> accessReply,
+	newConnection:               proc "c" (server: cstring, port: i32, usessl: i32) -> ^TCPConnection,
+	retain:                      proc "c" (http: ^TCPConnection) -> ^TCPConnection,
+	release:                     proc "c" (http: ^TCPConnection),
+	getError:                    proc "c" (connection: ^TCPConnection) -> PDNetErr,
+	setConnectTimeout:           proc "c" (connection: ^TCPConnection, ms: i32),
+	setUserdata:                 proc "c" (connection: ^TCPConnection, userdata: rawptr),
+	getUserdata:                 proc "c" (connection: ^TCPConnection) -> rawptr,
+	open:                        proc "c" (conn: ^TCPConnection, cb: TCPOpenCallback, ud: rawptr) -> PDNetErr,
+	close:                       proc "c" (conn: ^TCPConnection) -> PDNetErr,
+	setConnectionClosedCallback: proc "c" (conn: ^TCPConnection, callback: TCPConnectionCallback),
+	setReadTimeout:              proc "c" (conn: ^TCPConnection, ms: i32),
+	setReadBufferSize:           proc "c" (conn: ^TCPConnection, bytes: i32),
+	size_t:                      proc "c" (conn: ^TCPConnection, getBytesAvailable: ^i32) -> proc "c" (^TCPConnection) -> i32,
+	read:                        proc "c" (conn: ^TCPConnection, buffer: rawptr, length: i32) -> i32, // returns # of bytes read, or PDNetErr on error
+	write:                       proc "c" (conn: ^TCPConnection, buffer: rawptr, length: i32) -> i32, // returns # of bytes sent, or PDNetErr on error
 }
 
 network :: struct {
 	http:       ^http,
 	tcp:        ^tcp,
 	getStatus:  proc "c" () -> WifiStatus,
-	setEnabled: proc "c" (i32, proc "c" (PDNetErr)),
+	setEnabled: proc "c" (flag: i32, callback: proc "c" (err: PDNetErr)),
 	reserved:   [3]i32,
 }
 

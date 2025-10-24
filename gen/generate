@@ -16,20 +16,23 @@ mkdir -p tmp
 
 # copy c-api headers from playdate sdk
 cp -r ${PLAYDATE_SDK_PATH}/C_API tmp/input
-# unwrap code from #if TARGET_EXTENSION ... #endif
-find tmp/input -name "*.h" -exec perl -i -pe 's/^#if TARGET_EXTENSION$//; s/^#endif$//' {} +
+
 # translate headers to odin
 ${BINDGEN} gen
 
-# clean up generated odin code
-# remove duplicated struct{} definitions - seems to be a bug in bindgen
-find tmp/output -name "*.odin" -type f -exec perl -i -0777 -pe '
-	s/^(\w+)(\s*::\s*struct\s*\{\})(?:.*?\n)*?(?=^\1\2)/REMOVED\n/gm;
-	s/^REMOVED\n//gm;
-	' {} +
+# work arund odin-bindgen limitations
+# fix enum and bit_set naming
+perl -i -0777 -pe 's/^PDButtons :: enum/PDButton :: enum/gm' tmp/output/pd_api_sys.odin
+perl -i -0777 -pe 's/^PDButtons :: bit_set\[PDButtons/PDButtons :: bit_set\[PDButton/gm' tmp/output/pd_api_sys.odin
+perl -i -0777 -pe 's/^FileOptions :: enum/FileOption :: enum/gm' tmp/output/pd_api_file.odin
+perl -i -0777 -pe 's/^FileOptions :: bit_set\[FileOptions/FileOptions :: bit_set\[FileOption/gm' tmp/output/pd_api_file.odin
+# fix messed-up function declaration
+perl -i -0777 -pe 's/_bool:\h*proc "c" \(command: i32, data: rawptr, len: i32, sendMirrorData: \^i32\) -> proc "c" \(i32, rawptr, i32\) -> i32/sendMirrorData:proc "c" \(command: i32, data: rawptr, len: i32\) -> bool/gm' tmp/output/pd_api_sys.odin
+perl -i -0777 -pe 's/_bool:\h*proc \"c\" \(p: \^LCDStreamPlayer, update: \^i32\) -> proc "c" \(\^LCDStreamPlayer\) -> i32/update: proc "c" \(p: \^LCDStreamPlayer\) -> bool/gm' tmp/output/pd_api_gfx.odin
+
 # remove duplicate definitions from specific files - these are defined in several places in the C API
-perl -i -0777 -pe 's/^LCDSprite :: struct \{\}\n//gm' tmp/output/pd_api_lua.odin
-perl -i -0777 -pe 's/^AccessRequestCallback :: proc "c" \(i32, rawptr\)\n//gm' tmp/output/pd_api_sys.odin
-perl -i -0777 -pe 's/^HTTPConnection :: struct \{\}\n//gm' tmp/output/pd_api_gfx.odin
-perl -i -0777 -pe 's/^TCPConnection :: struct \{\}\n//gm' tmp/output/pd_api_gfx.odin
-perl -i -0777 -pe 's/^FilePlayer :: struct \{\}\n//gm' tmp/output/pd_api_gfx.odin
+perl -i -0777 -pe 's/^LCDSprite\h*::\h*struct\h*\{\}\n//gm' tmp/output/pd_api_lua.odin
+perl -i -0777 -pe 's/^AccessRequestCallback :: proc "c" \(allowed: i32, userdata: rawptr\)\n//gm' tmp/output/pd_api_sys.odin
+perl -i -0777 -pe 's/^HTTPConnection\h*::\h*struct\h*\{\}\n//gm' tmp/output/pd_api_gfx.odin
+perl -i -0777 -pe 's/^TCPConnection\h*::\h*struct\h*\{\}\n//gm' tmp/output/pd_api_gfx.odin
+perl -i -0777 -pe 's/^FilePlayer\h*::\h*struct\h*\{\}\n//gm' tmp/output/pd_api_gfx.odin

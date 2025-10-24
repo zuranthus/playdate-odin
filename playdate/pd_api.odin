@@ -7,13 +7,7 @@
 //
 package playdate
 
-
-
-
-
-// PLAYDATEAPI_H :: 
-
-PlaydateAPI :: struct {
+API :: struct {
 	system:      ^sys,
 	file:        ^file,
 	graphics:    ^graphics,
@@ -27,17 +21,17 @@ PlaydateAPI :: struct {
 }
 
 PDSystemEvent :: enum u32 {
-	Init,
-	InitLua,
-	Lock,
-	Unlock,
-	Pause,
-	Resume,
-	Terminate,
-	KeyPressed, // arg is keycode
-	KeyReleased,
-	LowPower,
-	MirrorStarted,
-	MirrorEnded,
+	Init          = 0,
+	InitLua       = 1,
+	Lock          = 2,
+	Unlock        = 3,
+	Pause         = 4,
+	Resume        = 5,
+	Terminate     = 6,
+	KeyPressed    = 7, // arg is keycode
+	KeyReleased   = 8,
+	LowPower      = 9,
+	MirrorStarted = 10,
+	MirrorEnded   = 11,
 }
 

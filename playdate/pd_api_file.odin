@@ -7,20 +7,16 @@
 //
 package playdate
 
-
-
-
-
-// pdext_file_h :: 
-
 SDFile :: struct {}
 
-FileOptions :: enum u32 {
-	Read     = 1,
-	ReadData = 2,
-	Write    = 4,
-	Append   = 8,
+FileOption :: enum u32 {
+	Read     = 0,
+	ReadData = 1,
+	Write    = 2,
+	Append   = 3,
 }
+
+FileOptions :: bit_set[FileOption; i32]
 
 FileStat :: struct {
 	isdir:    i32,
@@ -34,24 +30,22 @@ FileStat :: struct {
 }
 
 SEEK_SET        :: 0       /* Seek from beginning of file.  */
-/* Seek from beginning of file.  */
 SEEK_CUR        :: 1       /* Seek from current position.  */
-/* Seek from current position.  */
 SEEK_END        :: 2       /* Set file pointer to EOF plus "offset" */
 
 file :: struct {
 	geterr:    proc "c" () -> cstring,
-	listfiles: proc "c" (cstring, proc "c" (cstring, rawptr), rawptr, i32) -> i32,
-	stat:      proc "c" (cstring, ^FileStat) -> i32,
-	mkdir:     proc "c" (cstring) -> i32,
-	unlink:    proc "c" (cstring, i32) -> i32,
-	rename:    proc "c" (cstring, cstring) -> i32,
-	open:      proc "c" (cstring, FileOptions) -> ^SDFile,
-	close:     proc "c" (^SDFile) -> i32,
-	read:      proc "c" (^SDFile, rawptr, u32) -> i32,
-	write:     proc "c" (^SDFile, rawptr, u32) -> i32,
-	flush:     proc "c" (^SDFile) -> i32,
-	tell:      proc "c" (^SDFile) -> i32,
-	seek:      proc "c" (^SDFile, i32, i32) -> i32,
+	listfiles: proc "c" (path: cstring, callback: proc "c" (path: cstring, userdata: rawptr), userdata: rawptr, showhidden: i32) -> i32,
+	stat:      proc "c" (path: cstring, stat: ^FileStat) -> i32,
+	mkdir:     proc "c" (path: cstring) -> i32,
+	unlink:    proc "c" (name: cstring, recursive: i32) -> i32,
+	rename:    proc "c" (from: cstring, to: cstring) -> i32,
+	open:      proc "c" (name: cstring, mode: FileOptions) -> ^SDFile,
+	close:     proc "c" (file: ^SDFile) -> i32,
+	read:      proc "c" (file: ^SDFile, buf: rawptr, len: u32) -> i32,
+	write:     proc "c" (file: ^SDFile, buf: rawptr, len: u32) -> i32,
+	flush:     proc "c" (file: ^SDFile) -> i32,
+	tell:      proc "c" (file: ^SDFile) -> i32,
+	seek:      proc "c" (file: ^SDFile, pos: i32, whence: i32) -> i32,
 }
 
