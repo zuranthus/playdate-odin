@@ -38,17 +38,17 @@ WifiStatus :: enum u32 {
 	NotAvailable = 2, //!< A connection has been attempted and no configured AP was available
 }
 
-AccessRequestCallback  :: proc "c" (allowed: i32, userdata: rawptr)
+AccessRequestCallback  :: proc "c" (allowed: bool, userdata: rawptr)
 HTTPConnectionCallback :: proc "c" (connection: ^HTTPConnection)
 HTTPHeaderCallback     :: proc "c" (conn: ^HTTPConnection, key: cstring, value: cstring)
 
 http :: struct {
-	requestAccess:               proc "c" (server: cstring, port: i32, usessl: i32, purpose: cstring, requestCallback: AccessRequestCallback, userdata: rawptr) -> accessReply,
-	newConnection:               proc "c" (server: cstring, port: i32, usessl: i32) -> ^HTTPConnection,
+	requestAccess:               proc "c" (server: cstring, port: i32, usessl: bool, purpose: cstring, requestCallback: AccessRequestCallback, userdata: rawptr) -> accessReply,
+	newConnection:               proc "c" (server: cstring, port: i32, usessl: bool) -> ^HTTPConnection,
 	retain:                      proc "c" (http: ^HTTPConnection) -> ^HTTPConnection,
 	release:                     proc "c" (http: ^HTTPConnection),
 	setConnectTimeout:           proc "c" (connection: ^HTTPConnection, ms: i32),
-	setKeepAlive:                proc "c" (connection: ^HTTPConnection, keepalive: i32),
+	setKeepAlive:                proc "c" (connection: ^HTTPConnection, keepalive: bool),
 	setByteRange:                proc "c" (connection: ^HTTPConnection, start: i32, end: i32),
 	setUserdata:                 proc "c" (connection: ^HTTPConnection, userdata: rawptr),
 	getUserdata:                 proc "c" (connection: ^HTTPConnection) -> rawptr,
@@ -74,8 +74,8 @@ TCPConnectionCallback :: proc "c" (connection: ^TCPConnection, err: PDNetErr)
 TCPOpenCallback       :: proc "c" (conn: ^TCPConnection, err: PDNetErr, ud: rawptr)
 
 tcp :: struct {
-	requestAccess:               proc "c" (server: cstring, port: i32, usessl: i32, purpose: cstring, requestCallback: AccessRequestCallback, userdata: rawptr) -> accessReply,
-	newConnection:               proc "c" (server: cstring, port: i32, usessl: i32) -> ^TCPConnection,
+	requestAccess:               proc "c" (server: cstring, port: i32, usessl: bool, purpose: cstring, requestCallback: AccessRequestCallback, userdata: rawptr) -> accessReply,
+	newConnection:               proc "c" (server: cstring, port: i32, usessl: bool) -> ^TCPConnection,
 	retain:                      proc "c" (http: ^TCPConnection) -> ^TCPConnection,
 	release:                     proc "c" (http: ^TCPConnection),
 	getError:                    proc "c" (connection: ^TCPConnection) -> PDNetErr,
@@ -96,7 +96,7 @@ network :: struct {
 	http:       ^http,
 	tcp:        ^tcp,
 	getStatus:  proc "c" () -> WifiStatus,
-	setEnabled: proc "c" (flag: i32, callback: proc "c" (err: PDNetErr)),
+	setEnabled: proc "c" (flag: bool, callback: proc "c" (err: PDNetErr)),
 	reserved:   [3]i32,
 }
 

@@ -115,7 +115,7 @@ videostream :: struct {
 	//	LCDBitmap* (*getContext)(LCDStreamPlayer* p);
 	
 	// returns true if it drew a frame, else false
-	update: proc "c" (p: ^LCDStreamPlayer) -> bool,
+	update:                proc "c" (p: ^LCDStreamPlayer) -> bool,
 	getBufferedFrameCount: proc "c" (p: ^LCDStreamPlayer) -> i32,
 	uint32_t:              proc "c" (p: ^LCDStreamPlayer, getBytesRead: ^i32) -> proc "c" (p: ^LCDStreamPlayer) -> i32,
 

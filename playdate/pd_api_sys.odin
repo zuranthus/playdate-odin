@@ -7,6 +7,8 @@
 //
 package playdate
 
+import "core:c"
+
 PDButton :: enum u32 {
 	Left  = 0,
 	Right = 1,
@@ -113,17 +115,17 @@ sys :: struct {
 	// 2.4
 	setButtonCallback:        proc "c" (cb: PDButtonCallbackFunction, buttonud: rawptr, queuesize: i32),
 	setSerialMessageCallback: proc "c" (callback: proc "c" (data: cstring)),
-	vaFormatString:           proc "c" (outstr: ^cstring, fmt: cstring, args: i32) -> i32,
+	vaFormatString:           proc "c" (outstr: ^cstring, fmt: cstring, args: c.va_list) -> i32,
 	parseString:              proc "c" (str: cstring, format: cstring, #c_vararg _: ..any) -> i32,
 
 	// ???
 	delay: proc "c" (milliseconds: i32),
 
 	// 2.7
-	getServerTime: proc "c" (callback: proc "c" (time: cstring, err: cstring)),
-	restartGame:   proc "c" (launchargs: cstring),
-	getLaunchArgs: proc "c" (outpath: ^cstring) -> cstring,
-	sendMirrorData:proc "c" (command: i32, data: rawptr, len: i32) -> bool,
+	getServerTime:  proc "c" (callback: proc "c" (time: cstring, err: cstring)),
+	restartGame:    proc "c" (launchargs: cstring),
+	getLaunchArgs:  proc "c" (outpath: ^cstring) -> cstring,
+	sendMirrorData: proc "c" (command: i32, data: rawptr, len: i32) -> bool,
 
 	// 3.0
 	getSystemInfo: proc "c" () -> ^PDInfo,
