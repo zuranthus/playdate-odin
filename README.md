@@ -54,3 +54,7 @@ The `eventHandler` function you copied from the example is the entry point of yo
 
 For the complete API reference, see the [Playdate C API documentation](https://sdk.play.date/3.0.0/Inside%20Playdate%20with%20C.html#_api_reference). These Odin bindings directly mirror the C API, so the C documentation applies to the Odin code as well.
 
+## Acknowledgements
+
+The API bindings are generated using the awesome [odin-c-bindgen](https://github.com/karl-zylinski/odin-c-bindgen) by Karl Zylinski. 
+
