@@ -1,8 +1,8 @@
 package_name = "playdate"
 
 inputs = [
-	"../tmp/input"
-	"../tmp/input/pd_api"
+	"../tmp/input/pd_api_resolved.h"
+
 ]
 
 output_folder = "../tmp/output"
@@ -18,8 +18,8 @@ remove = [
 ]
 
 bit_setify = {
-	"PDButtons" = "PDButtons"
-	"FileOptions" = "FileOptions"
+	"PDButtons" = "PDButton"
+	"FileOptions" = "FileOption"
 }
 
 clang_defines = {
