@@ -24,7 +24,7 @@ detected_OS := $(strip $(detected_OS))
 $(info detected_OS is "$(detected_OS)")
 
 ifeq ($(detected_OS), Linux)
-PDSYM = 
+PDSYM =
 DYLIB_EXT = so
 PDCFLAGS = -sdkpath $(SDK)
 endif
@@ -50,7 +50,7 @@ PLAYDATE_BUILD_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
 LDSCRIPT = $(PLAYDATE_BUILD_DIR)link_map.ld
 
 LDFLAGS  = -nostartfiles -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-sp-d16 -D__FPU_USED=1 -T$(LDSCRIPT) \
-					-Wl,-Map=$(BUILDDIR)/pdex.map,--cref,--gc-sections,--no-warn-mismatch,--emit-relocs,--defsym=__aeabi_unwind_cpp_pr0=0 $(LIBDIR)
+					-Wl,-Map=$(BUILDDIR)/pdex.map,--cref,--gc-sections,--no-warn-mismatch,--emit-relocs,--defsym=__aeabi_unwind_cpp_pr0=0,--defsym=__aeabi_unwind_cpp_pr1=0,--defsym=__aeabi_d2h=0 $(LIBDIR)
 
 #
 # makefile rules
@@ -83,7 +83,7 @@ device-bin: odin-build $(LDSCRIPT) | MKBUILDDIR
 
 .PHONY: odin-build
 odin-build: | MKBUILDDIR
-	odin build . -out:$(BUILDDIR)/odin -build-mode:obj -target:freestanding_arm32 -reloc-mode:pic -use-separate-modules \
+	odin build . -out:$(BUILDDIR)/odin -build-mode:obj -target:freestanding_arm32 -reloc-mode:pic \
 		-no-entry-point -default-to-nil-allocator -no-thread-local \
 		-target-features:armv7e-m,thumb-mode,thumb2,mclass,m7,noarm,hwdiv,dsp,db,fp-armv8d16sp,vfp4d16sp,fpregs,fpregs16,v7,v7clrex,v6m,v6t2,v6k,v6,v5te,v5t,v4t \
 		$(ODINFLAGS_DEV)

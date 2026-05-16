@@ -1,0 +1,5 @@
+name=Playdate Odin Tests
+author=playdate-odin
+description=Test suite for playdate-odin bindings
+bundleID=com.playdate-odin.tests
+imagePath=

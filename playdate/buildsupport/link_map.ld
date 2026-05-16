@@ -29,6 +29,11 @@ SECTIONS
 
 		KEEP(*(.eh_frame*))
 
+		/* Odin's type-info table. Folded into .text so its R_ARM_ABS32 relocs
+		   land in .rel.text, which the Playdate loader applies. As its own
+		   section (.rel.odinti) the loader doesn't process it and fmt crashes
+		   reading unrelocated pointers. */
+		*(.odinti)
 	}
 
 	.data :
