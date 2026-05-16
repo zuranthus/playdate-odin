@@ -91,3 +91,7 @@ odin-build: | MKBUILDDIR
 clean:
 	-rm -rf $(BUILDDIR)
 	-rm -fR $(PRODUCT)
+
+.PHONY: fmt
+fmt:
+	odinfmt -w .

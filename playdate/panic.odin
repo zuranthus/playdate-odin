@@ -16,7 +16,12 @@ panic_contextless :: proc "contextless" (pd: ^API, message: string, loc := #call
 	runtime.trap()
 }
 
-ensure_contextless :: proc "contextless" (pd: ^API, condition: bool, message := #caller_expression(condition), loc := #caller_location) {
+ensure_contextless :: proc "contextless" (
+	pd: ^API,
+	condition: bool,
+	message := #caller_expression(condition),
+	loc := #caller_location,
+) {
 	if !condition {
 		panic_contextless(pd, message, loc)
 	}
