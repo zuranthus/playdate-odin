@@ -53,7 +53,9 @@ test_realloc_grow_preserves :: proc() -> bool {
 
 	p := cast([^]u8)pd.system.realloc(nil, 16)
 	expect_not_nil(p) or_return
-	for i in 0 ..< 16 do p[i] = u8(i + 1)
+	for i in 0 ..< 16 {
+		p[i] = u8(i + 1)
+	}
 
 	q := cast([^]u8)pd.system.realloc(p, 64)
 	defer pd.system.realloc(q, 0)
@@ -71,7 +73,9 @@ test_realloc_shrink_preserves :: proc() -> bool {
 
 	p := cast([^]u8)pd.system.realloc(nil, 64)
 	expect_not_nil(p) or_return
-	for i in 0 ..< 64 do p[i] = u8(i + 1)
+	for i in 0 ..< 64 {
+		p[i] = u8(i + 1)
+	}
 
 	q := cast([^]u8)pd.system.realloc(p, 16)
 	defer pd.system.realloc(q, 0)

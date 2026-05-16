@@ -4,8 +4,20 @@ import "base:runtime"
 import "core:c"
 import "core:fmt"
 
-default_context :: proc "contextless" (pd: ^API) -> runtime.Context {
-	return {allocator = heap_allocator(pd), assertion_failure_proc = assertion_failure_proc, user_ptr = pd}
+@(private = "file")
+_default_context: runtime.Context
+
+init_default_context :: proc "contextless" (pd: ^API) {
+	ensure_contextless(pd, _default_context.user_ptr == nil, "default_context already initialized")
+	_default_context = {
+		allocator              = heap_allocator(pd),
+		assertion_failure_proc = assertion_failure_proc,
+		user_ptr               = pd,
+	}
+}
+
+default_context :: proc "contextless" () -> runtime.Context {
+	return _default_context
 }
 
 assertion_failure_proc :: proc(prefix, message: string, loc: runtime.Source_Code_Location) -> ! {

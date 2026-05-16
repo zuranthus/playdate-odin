@@ -4,9 +4,10 @@ import playdate "../playdate"
 
 @(export)
 eventHandler :: proc "c" (pd: ^playdate.API, event: playdate.PDSystemEvent, arg: i32) -> i32 {
-	context = playdate.default_context(pd)
 	#partial switch event {
 	case .Init:
+		playdate.init_default_context(pd)
+		context = playdate.default_context()
 		pd.system.setUpdateCallback(dummyUpdate, nil)
 		run_test_suites(pd, {PLATFORM_TESTS, ALLOCATOR_TESTS})
 	}

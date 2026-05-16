@@ -1,10 +1,8 @@
 package test
 
 import playdate "../playdate"
-import "base:runtime"
 import "core:c"
 import "core:fmt"
-import "core:strings"
 
 TEST_FILTER :: #config(TEST_FILTER, "")
 
@@ -22,10 +20,7 @@ Test_Suite :: struct {
 
 expect :: proc(ok: bool, loc := #caller_location, expr := #caller_expression(ok)) -> bool {
 	if !ok {
-		report_failure(
-			"  %s(%d) expect(%s) failed: %v",
-			loc.file_path, loc.line, expr, ok,
-		)
+		report_failure("  %s(%d) expect(%s) failed: %v", loc.file_path, loc.line, expr, ok)
 	}
 	return ok
 }
@@ -38,10 +33,7 @@ expect_eq :: proc(
 ) -> bool {
 	ok := a == b
 	if !ok {
-		report_failure(
-			"  %s(%d) expect_eq(%s, %s) failed: %v, %v",
-			loc.file_path, loc.line, a_expr, b_expr, a, b,
-		)
+		report_failure("  %s(%d) expect_eq(%s, %s) failed: %v, %v", loc.file_path, loc.line, a_expr, b_expr, a, b)
 	}
 	return ok
 }
@@ -54,10 +46,7 @@ expect_ne :: proc(
 ) -> bool {
 	ok := a != b
 	if !ok {
-		report_failure(
-			"  %s(%d) expect_ne(%s, %s) failed: %v, %v",
-			loc.file_path, loc.line, a_expr, b_expr, a, b,
-		)
+		report_failure("  %s(%d) expect_ne(%s, %s) failed: %v, %v", loc.file_path, loc.line, a_expr, b_expr, a, b)
 	}
 	return ok
 }
@@ -65,10 +54,7 @@ expect_ne :: proc(
 expect_nil :: proc(val: $V, loc := #caller_location, expr := #caller_expression(val)) -> bool {
 	ok := val == nil
 	if !ok {
-		report_failure(
-			"  %s(%d) expect_nil(%s) failed: %v",
-			loc.file_path, loc.line, expr, val,
-		)
+		report_failure("  %s(%d) expect_nil(%s) failed: %v", loc.file_path, loc.line, expr, val)
 	}
 	return ok
 }
@@ -76,17 +62,12 @@ expect_nil :: proc(val: $V, loc := #caller_location, expr := #caller_expression(
 expect_not_nil :: proc(val: $V, loc := #caller_location, expr := #caller_expression(val)) -> bool {
 	ok := val != nil
 	if !ok {
-		report_failure(
-			"  %s(%d) expect_not_nil(%s) failed: %v",
-			loc.file_path, loc.line, expr, val,
-		)
+		report_failure("  %s(%d) expect_not_nil(%s) failed: %v", loc.file_path, loc.line, expr, val)
 	}
 	return ok
 }
 
-run_test_suites :: proc "contextless" (pd: ^playdate.API, suites: []Test_Suite) {
-	context = playdate.default_context(pd)
-
+run_test_suites :: proc(pd: ^playdate.API, suites: []Test_Suite) {
 	total_passed, total_failed, total_skipped: int
 	run_started := pd.system.getCurrentTimeMilliseconds()
 

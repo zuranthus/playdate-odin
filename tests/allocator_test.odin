@@ -54,7 +54,9 @@ test_resize_shrink_preserves :: proc() -> bool {
 	expect_eq(alloc_err, mem.Allocator_Error.None) or_return
 	expect_not_nil(data) or_return
 
-	for i in 0 ..< OLD do data[i] = u8(i)
+	for i in 0 ..< OLD {
+		data[i] = u8(i)
+	}
 
 	shrunk, resize_err := mem.resize_bytes(data, NEW)
 	defer delete(shrunk)

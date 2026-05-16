@@ -1,6 +1,7 @@
 PRODUCT = OdinTests.pdx
 
-ODINFLAGS_SIM := -no-rpath -o:speed -disable-red-zone
+ODINFLAGS_SIM ?= -no-rpath -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
+ODINFLAGS_DEV ?= -no-rpath -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
 
 include ../playdate/buildsupport/Makefile.inc
 

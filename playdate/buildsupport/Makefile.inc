@@ -2,8 +2,8 @@ ifeq ($(PRODUCT),)
 $(error PRODUCT is not set. Please set PRODUCT in your Makefile before including this file)
 endif
 
-ODINFLAGS_SIM ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone
-ODINFLAGS_DEV ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone
+ODINFLAGS_SIM ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
+ODINFLAGS_DEV ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
 
 HEAP_SIZE      ?= 8388208
 STACK_SIZE     ?= 61800

@@ -48,7 +48,9 @@ heap_allocator_proc :: proc(
 	switch mode {
 	case .Alloc:
 		bytes, err := realloc(nil, size, alignment, pd_realloc, location)
-		if err == nil do mem.zero_slice(bytes)
+		if err == nil {
+			mem.zero_slice(bytes)
+		}
 		return bytes, err
 
 	case .Alloc_Non_Zeroed:
@@ -63,7 +65,9 @@ heap_allocator_proc :: proc(
 
 	case .Resize:
 		bytes, err := realloc(old_memory, size, alignment, pd_realloc, location)
-		if err == nil && size > old_size do mem.zero_slice(bytes[old_size:])
+		if err == nil && size > old_size {
+			mem.zero_slice(bytes[old_size:])
+		}
 		return bytes, err
 
 	case .Resize_Non_Zeroed:
