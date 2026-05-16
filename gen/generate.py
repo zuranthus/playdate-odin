@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from typing import NoReturn
 
 SCRIPT_DIR = Path(__file__).parent
 TMP_DIR = SCRIPT_DIR.parent / "tmp"
@@ -13,12 +14,12 @@ TMP_OUTPUT = TMP_DIR / "output"
 PLAYDATE_DIR = SCRIPT_DIR.parent / "playdate"
 
 
-def error_exit(message):
+def error_exit(message: str) -> NoReturn:
     print(f"Error: {message}", file=sys.stderr)
     sys.exit(1)
 
 
-def get_env_or_exit(var_name, description, hint=""):
+def get_env_or_exit(var_name: str, description: str, hint: str = "") -> str:
     if value := os.environ.get(var_name):
         return value
     msg = f"{var_name} is not set. Set it to {description}."
