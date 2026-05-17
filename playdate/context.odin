@@ -11,6 +11,7 @@ init_default_context :: proc "contextless" (pd: ^API) {
 	ensure_contextless(pd, _default_context.user_ptr == nil, "default_context already initialized")
 	_default_context = {
 		allocator              = heap_allocator(pd),
+		logger                 = console_logger(pd),
 		assertion_failure_proc = assertion_failure_proc,
 		user_ptr               = pd,
 	}

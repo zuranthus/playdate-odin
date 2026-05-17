@@ -9,7 +9,8 @@ eventHandler :: proc "c" (pd: ^playdate.API, event: playdate.PDSystemEvent, arg:
 		playdate.init_default_context(pd)
 		context = playdate.default_context()
 		pd.system.setUpdateCallback(dummyUpdate, nil)
-		run_test_suites(pd, {PLATFORM_TESTS, ALLOCATOR_TESTS})
+
+		run_test_suites(pd, {PLATFORM_TESTS, ALLOCATOR_TESTS, LOGGER_TESTS})
 	}
 	return 0
 }
