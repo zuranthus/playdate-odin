@@ -6,9 +6,8 @@ import "core:fmt"
 import "core:strings"
 import "core:terminal/ansi"
 
-// This logger does not honor .Date, .Time (core:time is unavailable on
-// freestanding) or .Thread_Id. Setting them has no effect.
-DEFAULT_LOGGER_OPTS :: runtime.Logger_Options{.Level, .Short_File_Path, .Line, .Procedure, .Terminal_Color}
+// This logger does not honor .Thread_Id.
+DEFAULT_LOGGER_OPTS :: runtime.Logger_Options{.Level, .Date, .Time, .Short_File_Path, .Line, .Procedure}
 
 @(private = "file")
 LEVEL_HEADERS := [?]string {
@@ -32,17 +31,28 @@ LEVEL_COLORS := [?]string {
 }
 
 @(private = "file")
+TIMESTAMP_OPTS :: runtime.Logger_Options{.Date, .Time}
+
+@(private = "file")
 LOCATION_HEADER_OPTS :: runtime.Logger_Options{.Short_File_Path, .Long_File_Path, .Line, .Procedure}
 
 @(private = "file")
 LOCATION_FILE_OPTS :: runtime.Logger_Options{.Short_File_Path, .Long_File_Path}
 
+// `loc` is captured to detect whether the binary was built with source-code
+// locations stripped (`-source-code-locations:none`).
 @(require_results)
 console_logger :: proc "contextless" (
 	lowest := runtime.Logger_Level.Debug,
 	opt := DEFAULT_LOGGER_OPTS,
+	loc := #caller_location,
 ) -> runtime.Logger {
-	return runtime.Logger{console_logger_proc, nil, lowest, opt}
+	effective_opts := opt
+	if loc.file_path == "" {
+		// Strip location headers if the binary was built without source code locations.
+		effective_opts &~= LOCATION_HEADER_OPTS
+	}
+	return runtime.Logger{console_logger_proc, nil, lowest, effective_opts}
 }
 
 @(private = "file")
@@ -82,10 +92,40 @@ format_log_message :: proc(
 		}
 	}
 
+	write_time_header(&sb, options)
 	write_location_header(&sb, options, location)
 
 	strings.write_string(&sb, text)
 	return strings.to_string(sb)
+}
+
+@(private = "file")
+write_time_header :: proc(sb: ^strings.Builder, options: runtime.Logger_Options) {
+	if TIMESTAMP_OPTS & options == nil {
+		return
+	}
+	ms: u32
+	epoch := system_get_seconds_since_epoch(&ms)
+	dt: PD_Date_Time
+	system_convert_epoch_to_date_time(epoch, &dt)
+	format_time_header(sb, options, dt)
+}
+
+format_time_header :: proc(sb: ^strings.Builder, options: runtime.Logger_Options, dt: PD_Date_Time) {
+	if TIMESTAMP_OPTS & options == nil {
+		return
+	}
+	strings.write_byte(sb, '[')
+	if .Date in options {
+		fmt.sbprintf(sb, "%d-%02d-%02d", dt.year, dt.month, dt.day)
+		if .Time in options {
+			strings.write_byte(sb, ' ')
+		}
+	}
+	if .Time in options {
+		fmt.sbprintf(sb, "%02d:%02d:%02d", dt.hour, dt.minute, dt.second)
+	}
+	strings.write_string(sb, "] ")
 }
 
 @(private = "file")
