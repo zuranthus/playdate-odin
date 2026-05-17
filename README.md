@@ -44,8 +44,17 @@ PLAYDATE_SDK_PATH=/path/to/PlaydateSDK
 Build your game with one of these commands:
 ```bash
 make simulator      # Build for simulator
+make simulator-run  # Build and launch in the Playdate Simulator
 make device         # Build for device
+make device-run     # device-deploy, then tail the device's serial log (Ctrl-C to stop)
 make clean          # Clean build files
+```
+
+Builds default to `BUILD=debug` (full runtime checks, assertions, source locations, and `-debug`/DWARF on the simulator). Pass `BUILD=release` to strip those and optimize for speed:
+
+```bash
+make simulator BUILD=release
+make device    BUILD=release
 ```
 
 The build will create a `.pdx` bundle in your project directory that you can run in the Playdate Simulator or upload to your device.
@@ -56,5 +65,4 @@ For the complete API reference, see the [Playdate C API documentation](https://s
 
 ## Acknowledgements
 
-The API bindings are generated using the awesome [odin-c-bindgen](https://github.com/karl-zylinski/odin-c-bindgen) by Karl Zylinski. 
-
+The API bindings are generated using the awesome [odin-c-bindgen](https://github.com/karl-zylinski/odin-c-bindgen) by Karl Zylinski.

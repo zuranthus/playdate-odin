@@ -2,8 +2,22 @@ ifeq ($(PRODUCT),)
 $(error PRODUCT is not set. Please set PRODUCT in your Makefile before including this file)
 endif
 
-ODINFLAGS_SIM ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
-ODINFLAGS_DEV ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
+BUILD ?= debug
+
+ODINFLAGS_COMMON ?= -no-rpath -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
+
+ifeq ($(BUILD),debug)
+ODINFLAGS_BUILD_SIM    ?= -debug
+ODINFLAGS_BUILD_DEVICE ?= -o:speed
+else ifeq ($(BUILD),release)
+ODINFLAGS_BUILD_SIM    ?= -no-type-assert -no-bounds-check -disable-assert -source-code-locations:none -o:speed
+ODINFLAGS_BUILD_DEVICE ?= -no-type-assert -no-bounds-check -disable-assert -source-code-locations:none -o:speed
+else
+$(error BUILD must be 'debug' or 'release' (got '$(BUILD)'))
+endif
+
+ODINFLAGS_SIM    ?= $(ODINFLAGS_COMMON) $(ODINFLAGS_BUILD_SIM)
+ODINFLAGS_DEVICE ?= $(ODINFLAGS_COMMON) $(ODINFLAGS_BUILD_DEVICE)
 
 HEAP_SIZE       ?= 8388208
 STACK_SIZE      ?= 61800
@@ -32,6 +46,7 @@ endif
 
 ifeq ($(detected_OS), Darwin)
 PDSYM = $(SDK)/bin/Playdate\ Simulator.app/Contents/MacOS/Playdate\ Simulator
+PD_DEVICE ?= $(firstword $(wildcard /dev/cu.usbmodemPDU*))
 DYLIB_EXT = dylib
 PDCFLAGS=
 endif
@@ -62,9 +77,6 @@ print-%  : ; @echo $* = $($*)
 MKBUILDDIR:
 	mkdir -p $(BUILDDIR)/Source
 
-simulator-run: simulator
-	exec $(PDSYM) $(PRODUCT)
-
 simulator: simulator-bin $(BUILDDIR)/Source/pdxinfo
 	$(PDC) $(PDCFLAGS) $(BUILDDIR)/Source $(PRODUCT)
 
@@ -89,7 +101,7 @@ odin-build: | MKBUILDDIR
 		-no-entry-point -default-to-nil-allocator -no-thread-local \
 		-target-features:armv7e-m,thumb-mode,thumb2,mclass,m7,noarm,hwdiv,dsp,db,fp-armv8d16sp,vfp4d16sp,fpregs,fpregs16,v7,v7clrex,v6m,v6t2,v6k,v6,v5te,v5t,v4t \
 		-define:PLAYDATE_TEMP_ARENA_SIZE=$(TEMP_ARENA_SIZE) \
-		$(ODINFLAGS_DEV)
+		$(ODINFLAGS_DEVICE)
 
 clean:
 	-rm -rf $(BUILDDIR)
@@ -98,3 +110,56 @@ clean:
 .PHONY: fmt
 fmt:
 	odinfmt -w .
+
+ifeq ($(detected_OS), Darwin)
+.PHONY: device-deploy
+device-deploy: device
+	@test -n "$(PD_DEVICE)" || { echo "No Playdate found (expected /dev/cu.usbmodemPDU*)"; exit 1; }
+	$(SDK)/bin/pdutil $(PD_DEVICE) datadisk
+	@until [ -d /Volumes/PLAYDATE/Games ]; do sleep 1; done
+	cp -R $(PRODUCT) /Volumes/PLAYDATE/Games/
+	diskutil eject /Volumes/PLAYDATE
+	@until [ -e $(PD_DEVICE) ]; do sleep 1; done
+	$(SDK)/bin/pdutil $(PD_DEVICE) run /Games/$(PRODUCT)
+
+# simulator-run and device-run both clear ISIG on the controlling tty so
+# Ctrl-C arrives as the byte 0x03 in stdin instead of as SIGINT, then poll
+# stdin for a quit byte while the child runs in the background. The trap
+# cleans up regardless of how the script exits (quit byte, child died, etc).
+
+define SIMULATOR_RUN_SCRIPT
+orig=$$(stty -g)
+cleanup() {
+  stty "$$orig" 2>/dev/null
+  osascript -e 'tell application "Playdate Simulator" to quit' >/dev/null 2>&1
+}
+trap cleanup EXIT
+stty -icanon -echo -isig min 1 time 0
+"$$1" "$$2" & p=$$!
+while kill -0 $$p 2>/dev/null; do
+  IFS= read -t 1 -rsn1 c && case "$$c" in $$'\x03'|$$'\x1b'|q|Q) break;; esac
+done
+endef
+export SIMULATOR_RUN_SCRIPT
+
+.PHONY: simulator-run
+simulator-run: simulator
+	@echo "Running $(PRODUCT) in Simulator (Ctrl-C, q, or ESC to stop)"
+	-@bash -c "$$SIMULATOR_RUN_SCRIPT" _ $(PDSYM) $(PRODUCT)
+
+define DEVICE_RUN_SCRIPT
+orig=$$(stty -g)
+trap 'stty "$$orig" 2>/dev/null; kill -9 $$p 2>/dev/null' EXIT
+stty -icanon -echo -isig min 1 time 0
+cat "$$1" & p=$$!
+while kill -0 $$p 2>/dev/null; do
+  IFS= read -t 1 -rsn1 c && case "$$c" in $$'\x03'|$$'\x1b'|q|Q) break;; esac
+done
+endef
+export DEVICE_RUN_SCRIPT
+
+.PHONY: device-run
+device-run: device-deploy
+	@echo "Tailing $(PD_DEVICE) (Ctrl-C, q, or ESC to stop)"
+	-@bash -c "$$DEVICE_RUN_SCRIPT" _ $(PD_DEVICE)
+endif
