@@ -5,8 +5,9 @@ endif
 ODINFLAGS_SIM ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
 ODINFLAGS_DEV ?= -no-type-assert -no-bounds-check -disable-assert -no-rpath -source-code-locations:none -o:speed -disable-red-zone -vet -strict-style -vet-tabs -disallow-do -warnings-as-errors
 
-HEAP_SIZE      ?= 8388208
-STACK_SIZE     ?= 61800
+HEAP_SIZE       ?= 8388208
+STACK_SIZE      ?= 61800
+TEMP_ARENA_SIZE ?= 65536
 
 # Locate the SDK
 SDK = ${PLAYDATE_SDK_PATH}
@@ -76,6 +77,7 @@ $(BUILDDIR)/Source/pdxinfo: pdxinfo | MKBUILDDIR
 simulator-bin: | MKBUILDDIR
 	odin build . -build-mode:shared -out:$(BUILDDIR)/Source/pdex.${DYLIB_EXT} \
 	-no-entry-point -default-to-nil-allocator -no-thread-local \
+	-define:PLAYDATE_TEMP_ARENA_SIZE=$(TEMP_ARENA_SIZE) \
 	$(ODINFLAGS_SIM)
 
 device-bin: odin-build $(LDSCRIPT) | MKBUILDDIR
@@ -86,6 +88,7 @@ odin-build: | MKBUILDDIR
 	odin build . -out:$(BUILDDIR)/odin -build-mode:obj -target:freestanding_arm32 -reloc-mode:pic \
 		-no-entry-point -default-to-nil-allocator -no-thread-local \
 		-target-features:armv7e-m,thumb-mode,thumb2,mclass,m7,noarm,hwdiv,dsp,db,fp-armv8d16sp,vfp4d16sp,fpregs,fpregs16,v7,v7clrex,v6m,v6t2,v6k,v6,v5te,v5t,v4t \
+		-define:PLAYDATE_TEMP_ARENA_SIZE=$(TEMP_ARENA_SIZE) \
 		$(ODINFLAGS_DEV)
 
 clean:

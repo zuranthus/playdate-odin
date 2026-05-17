@@ -13,6 +13,7 @@ eventHandler :: proc "c" (pd: ^playdate.API, event: playdate.PDSystemEvent, arg:
 	#partial switch event {
 	case .Init:
 		onInit(pd)
+		free_all(context.temp_allocator)
 	}
 	return 0
 }
@@ -24,6 +25,7 @@ onInit :: proc(pd: ^playdate.API) {
 onUpdate :: proc "c" (ud: rawptr) -> i32 {
 	pd := cast(^playdate.API)ud
 	context = playdate.default_context()
+	defer free_all(context.temp_allocator)
 
 	pd.system.logToConsole("onUpdate called")
 	return 1
