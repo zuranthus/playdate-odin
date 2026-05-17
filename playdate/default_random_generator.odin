@@ -6,10 +6,9 @@ import "base:runtime"
 // xoshiro128++ — 32-bit-native PRNG by Blackman & Vigna (https://prng.di.unimi.it/).
 // Chosen over Odin's stdlib PCG64 / xoshiro256 because it uses only 32-bit ops,
 // which avoids 64-bit emulation cost on the Playdate's 32-bit Cortex-M7.
-// Time-seeded convenience: seeds the default state from pd.system.getCurrentTimeMilliseconds().
 @(require_results)
-default_random_generator :: proc "contextless" (pd: ^API) -> runtime.Random_Generator {
-	return random_generator(pd.system.getCurrentTimeMilliseconds())
+default_random_generator :: proc "contextless" () -> runtime.Random_Generator {
+	return random_generator(system_get_current_time_milliseconds())
 }
 
 // Explicitly-seeded constructor. Use this for deterministic randomness (replays,

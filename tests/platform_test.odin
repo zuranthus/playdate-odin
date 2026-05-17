@@ -23,10 +23,9 @@ PLATFORM_TESTS :: Test_Suite {
 @(private = "file")
 test_realloc_alloc :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
-	p := pd.system.realloc(nil, 64)
-	defer pd.system.realloc(p, 0)
+	p := playdate.system_realloc(nil, 64)
+	defer playdate.system_realloc(p, 0)
 	expect_not_nil(p) or_return
 	return true
 }
@@ -34,12 +33,11 @@ test_realloc_alloc :: proc() -> bool {
 @(private = "file")
 test_realloc_8byte_aligned :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
 	sizes := [?]c.size_t{1, 7, 8, 17, 64, 1000}
 	for size in sizes {
-		p := pd.system.realloc(nil, size)
-		defer pd.system.realloc(p, 0)
+		p := playdate.system_realloc(nil, size)
+		defer playdate.system_realloc(p, 0)
 		expect_not_nil(p) or_return
 		expect_eq(uintptr(p) & 0b111, uintptr(0)) or_return
 	}
@@ -49,16 +47,15 @@ test_realloc_8byte_aligned :: proc() -> bool {
 @(private = "file")
 test_realloc_grow_preserves :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
-	p := cast([^]u8)pd.system.realloc(nil, 16)
+	p := cast([^]u8)playdate.system_realloc(nil, 16)
 	expect_not_nil(p) or_return
 	for i in 0 ..< 16 {
 		p[i] = u8(i + 1)
 	}
 
-	q := cast([^]u8)pd.system.realloc(p, 64)
-	defer pd.system.realloc(q, 0)
+	q := cast([^]u8)playdate.system_realloc(p, 64)
+	defer playdate.system_realloc(q, 0)
 	expect_not_nil(q) or_return
 	for i in 0 ..< 16 {
 		expect_eq(q[i], u8(i + 1)) or_return
@@ -69,16 +66,15 @@ test_realloc_grow_preserves :: proc() -> bool {
 @(private = "file")
 test_realloc_shrink_preserves :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
-	p := cast([^]u8)pd.system.realloc(nil, 64)
+	p := cast([^]u8)playdate.system_realloc(nil, 64)
 	expect_not_nil(p) or_return
 	for i in 0 ..< 64 {
 		p[i] = u8(i + 1)
 	}
 
-	q := cast([^]u8)pd.system.realloc(p, 16)
-	defer pd.system.realloc(q, 0)
+	q := cast([^]u8)playdate.system_realloc(p, 16)
+	defer playdate.system_realloc(q, 0)
 	expect_not_nil(q) or_return
 	for i in 0 ..< 16 {
 		expect_eq(q[i], u8(i + 1)) or_return
@@ -89,11 +85,10 @@ test_realloc_shrink_preserves :: proc() -> bool {
 @(private = "file")
 test_realloc_free_returns_nil :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
-	p := pd.system.realloc(nil, 32)
+	p := playdate.system_realloc(nil, 32)
 	expect_not_nil(p) or_return
-	q := pd.system.realloc(p, 0)
+	q := playdate.system_realloc(p, 0)
 	expect_nil(q) or_return
 	return true
 }
@@ -101,11 +96,10 @@ test_realloc_free_returns_nil :: proc() -> bool {
 @(private = "file")
 test_printf_d :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
 	got: cstring
-	n := pd.system.formatString(&got, "%d", 42)
-	defer pd.system.realloc(cast(rawptr)got, 0)
+	n := playdate.pd_api.system.formatString(&got, "%d", 42)
+	defer playdate.system_realloc(cast(rawptr)got, 0)
 	expect_eq(string(got), "42") or_return
 	expect_eq(n, 2) or_return
 	return true
@@ -114,11 +108,10 @@ test_printf_d :: proc() -> bool {
 @(private = "file")
 test_printf_s :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
 	got: cstring
-	pd.system.formatString(&got, "[%s]", cstring("hi"))
-	defer pd.system.realloc(cast(rawptr)got, 0)
+	playdate.pd_api.system.formatString(&got, "[%s]", cstring("hi"))
+	defer playdate.system_realloc(cast(rawptr)got, 0)
 	expect_eq(string(got), "[hi]") or_return
 	return true
 }
@@ -139,12 +132,11 @@ test_fmt_bprintf :: proc() -> bool {
 @(private = "file")
 test_printf_precision_s :: proc() -> bool {
 	context.allocator = runtime.panic_allocator()
-	pd := cast(^playdate.API)context.user_ptr
 
 	src := "hello world"
 	got: cstring
-	n := pd.system.formatString(&got, "%.*s", 5, raw_data(src))
-	defer pd.system.realloc(cast(rawptr)got, 0)
+	n := playdate.pd_api.system.formatString(&got, "%.*s", 5, raw_data(src))
+	defer playdate.system_realloc(cast(rawptr)got, 0)
 	expect_eq(string(got), "hello") or_return
 	expect_eq(n, 5) or_return
 	return true

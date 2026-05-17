@@ -39,11 +39,10 @@ LOCATION_FILE_OPTS :: runtime.Logger_Options{.Short_File_Path, .Long_File_Path}
 
 @(require_results)
 console_logger :: proc "contextless" (
-	pd: ^API,
 	lowest := runtime.Logger_Level.Debug,
 	opt := DEFAULT_LOGGER_OPTS,
 ) -> runtime.Logger {
-	return runtime.Logger{console_logger_proc, cast(rawptr)pd, lowest, opt}
+	return runtime.Logger{console_logger_proc, nil, lowest, opt}
 }
 
 @(private = "file")
@@ -54,13 +53,12 @@ console_logger_proc :: proc(
 	options: runtime.Logger_Options,
 	location := #caller_location,
 ) {
-	pd := cast(^API)logger_data
 	buf: [1024]u8
 	msg := format_log_message(buf[:], level, text, options, location)
 	if level >= .Fatal {
-		pd.system.error("%.*s", c.int(len(msg)), raw_data(msg))
+		pd_api.system.error("%.*s", c.int(len(msg)), raw_data(msg))
 	} else {
-		pd.system.logToConsole("%.*s", c.int(len(msg)), raw_data(msg))
+		pd_api.system.logToConsole("%.*s", c.int(len(msg)), raw_data(msg))
 	}
 }
 

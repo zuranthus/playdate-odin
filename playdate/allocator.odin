@@ -4,8 +4,8 @@ import "base:runtime"
 import mem "core:mem"
 
 @(require_results)
-heap_allocator :: proc "contextless" (pd: ^API) -> mem.Allocator {
-	return mem.Allocator{procedure = heap_allocator_proc, data = cast(rawptr)pd.system.realloc}
+heap_allocator :: proc "contextless" () -> mem.Allocator {
+	return mem.Allocator{procedure = heap_allocator_proc, data = cast(rawptr)pd_api.system.realloc}
 }
 
 heap_allocator_proc :: proc(

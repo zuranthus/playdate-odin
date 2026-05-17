@@ -67,9 +67,10 @@ expect_not_nil :: proc(val: $V, loc := #caller_location, expr := #caller_express
 	return ok
 }
 
-run_test_suites :: proc(pd: ^playdate.API, suites: []Test_Suite) {
+run_test_suites :: proc(suites: []Test_Suite) {
+	pd := playdate.pd_api
 	total_passed, total_failed, total_skipped: int
-	run_started := pd.system.getCurrentTimeMilliseconds()
+	run_started := playdate.system_get_current_time_milliseconds()
 
 	for suite in suites {
 		pd.system.logToConsole("=== %.*s ===", c.int(len(suite.name)), raw_data(suite.name))
@@ -95,9 +96,9 @@ run_test_suites :: proc(pd: ^playdate.API, suites: []Test_Suite) {
 				c.int(len(entry.name)),
 				raw_data(entry.name),
 			)
-			start := pd.system.getCurrentTimeMilliseconds()
+			start := playdate.system_get_current_time_milliseconds()
 			_ = entry.func()
-			elapsed := pd.system.getCurrentTimeMilliseconds() - start
+			elapsed := playdate.system_get_current_time_milliseconds() - start
 
 			if test_failed {
 				pd.system.logToConsole(
@@ -123,7 +124,7 @@ run_test_suites :: proc(pd: ^playdate.API, suites: []Test_Suite) {
 		}
 	}
 
-	total_ms := pd.system.getCurrentTimeMilliseconds() - run_started
+	total_ms := playdate.system_get_current_time_milliseconds() - run_started
 	pd.system.logToConsole("")
 	pd.system.logToConsole(
 		"=== Results: %d passed, %d failed, %d skipped (%dms) ===",
@@ -150,8 +151,7 @@ matches_filter :: proc(suite_name, test_name: string) -> bool {
 @(private = "file")
 report_failure :: proc(format: string, args: ..any) {
 	test_failed = true
-	pd := cast(^playdate.API)context.user_ptr
 	buf: [512]u8
 	msg := fmt.bprintf(buf[:], format, ..args)
-	pd.system.logToConsole("%.*s", c.int(len(msg)), raw_data(msg))
+	playdate.pd_api.system.logToConsole("%.*s", c.int(len(msg)), raw_data(msg))
 }
