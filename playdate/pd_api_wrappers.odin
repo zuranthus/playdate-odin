@@ -36,12 +36,14 @@ LCD_Bitmap :: LCDBitmap
 LCD_Bitmap_Draw_Mode :: LCDBitmapDrawMode
 LCD_Bitmap_Flip :: LCDBitmapFlip
 LCD_Bitmap_Table :: LCDBitmapTable
+LCD_Color :: LCDColor
 LCD_Font :: LCDFont
 LCD_Font_Data :: LCDFontData
 LCD_Font_Glyph :: LCDFontGlyph
 LCD_Font_Language :: LCDFontLanguage
 LCD_Font_Page :: LCDFontPage
 LCD_Line_Cap_Style :: LCDLineCapStyle
+LCD_Pattern :: LCDPattern
 LCD_Polygon_Fill_Rule :: LCDPolygonFillRule
 LCD_Rect :: LCDRect
 LCD_Solid_Color :: LCDSolidColor
@@ -56,9 +58,11 @@ LFO_Type :: LFOType
 L_Valtype :: l_valtype
 Lua_C_Function :: lua_CFunction
 Lua_Reg :: lua_reg
+Lua_State :: lua_State
 Lua_Type :: LuaType
 Lua_UD_Object :: LuaUDObject
 Lua_Val :: lua_val
+MIDI_Note :: MIDINote
 Mic_Source :: MicSource
 One_Pole_Filter :: OnePoleFilter
 PD_Board :: PDBoard
@@ -425,7 +429,7 @@ graphics_video_get_context :: #force_inline proc "contextless" (p: ^LCD_Video_Pl
 	return pd_api.graphics.video.getContext(p)
 }
 
-graphics_clear :: #force_inline proc "contextless" (color: LCDColor) {
+graphics_clear :: #force_inline proc "contextless" (color: LCD_Color) {
 	pd_api.graphics.clear(color)
 }
 
@@ -494,7 +498,7 @@ graphics_draw_line :: #force_inline proc "contextless" (
 	x2: i32,
 	y2: i32,
 	width: i32,
-	color: LCDColor,
+	color: LCD_Color,
 ) {
 	pd_api.graphics.drawLine(x1, y1, x2, y2, width, color)
 }
@@ -506,16 +510,16 @@ graphics_fill_triangle :: #force_inline proc "contextless" (
 	y2: i32,
 	x3: i32,
 	y3: i32,
-	color: LCDColor,
+	color: LCD_Color,
 ) {
 	pd_api.graphics.fillTriangle(x1, y1, x2, y2, x3, y3, color)
 }
 
-graphics_draw_rect :: #force_inline proc "contextless" (x: i32, y: i32, width: i32, height: i32, color: LCDColor) {
+graphics_draw_rect :: #force_inline proc "contextless" (x: i32, y: i32, width: i32, height: i32, color: LCD_Color) {
 	pd_api.graphics.drawRect(x, y, width, height, color)
 }
 
-graphics_fill_rect :: #force_inline proc "contextless" (x: i32, y: i32, width: i32, height: i32, color: LCDColor) {
+graphics_fill_rect :: #force_inline proc "contextless" (x: i32, y: i32, width: i32, height: i32, color: LCD_Color) {
 	pd_api.graphics.fillRect(x, y, width, height, color)
 }
 
@@ -527,7 +531,7 @@ graphics_draw_ellipse :: #force_inline proc "contextless" (
 	lineWidth: i32,
 	startAngle: f32,
 	endAngle: f32,
-	color: LCDColor,
+	color: LCD_Color,
 ) {
 	pd_api.graphics.drawEllipse(x, y, width, height, lineWidth, startAngle, endAngle, color)
 }
@@ -539,7 +543,7 @@ graphics_fill_ellipse :: #force_inline proc "contextless" (
 	height: i32,
 	startAngle: f32,
 	endAngle: f32,
-	color: LCDColor,
+	color: LCD_Color,
 ) {
 	pd_api.graphics.fillEllipse(x, y, width, height, startAngle, endAngle, color)
 }
@@ -564,7 +568,7 @@ graphics_draw_text :: #force_inline proc "contextless" (
 	return pd_api.graphics.drawText(text, len, encoding, x, y)
 }
 
-graphics_new_bitmap :: #force_inline proc "contextless" (width: i32, height: i32, bgcolor: LCDColor) -> ^LCD_Bitmap {
+graphics_new_bitmap :: #force_inline proc "contextless" (width: i32, height: i32, bgcolor: LCD_Color) -> ^LCD_Bitmap {
 	return pd_api.graphics.newBitmap(width, height, bgcolor)
 }
 
@@ -595,7 +599,7 @@ graphics_get_bitmap_data :: #force_inline proc "contextless" (
 	pd_api.graphics.getBitmapData(bitmap, width, height, rowbytes, mask, data)
 }
 
-graphics_clear_bitmap :: #force_inline proc "contextless" (bitmap: ^LCD_Bitmap, bgcolor: LCDColor) {
+graphics_clear_bitmap :: #force_inline proc "contextless" (bitmap: ^LCD_Bitmap, bgcolor: LCD_Color) {
 	pd_api.graphics.clearBitmap(bitmap, bgcolor)
 }
 
@@ -697,7 +701,7 @@ graphics_display :: #force_inline proc "contextless" () {
 }
 
 graphics_set_color_to_pattern :: #force_inline proc "contextless" (
-	color: ^LCDColor,
+	color: ^LCD_Color,
 	bitmap: ^LCD_Bitmap,
 	x: i32,
 	y: i32,
@@ -726,7 +730,7 @@ graphics_set_screen_clip_rect :: #force_inline proc "contextless" (x: i32, y: i3
 graphics_fill_polygon :: #force_inline proc "contextless" (
 	nPoints: i32,
 	coords: ^i32,
-	color: LCDColor,
+	color: LCD_Color,
 	fillrule: LCD_Polygon_Fill_Rule,
 ) {
 	pd_api.graphics.fillPolygon(nPoints, coords, color, fillrule)
@@ -777,7 +781,7 @@ graphics_get_text_tracking :: #force_inline proc "contextless" () -> i32 {
 	return pd_api.graphics.getTextTracking()
 }
 
-graphics_set_pixel :: #force_inline proc "contextless" (x: i32, y: i32, _c: LCDColor) {
+graphics_set_pixel :: #force_inline proc "contextless" (x: i32, y: i32, _c: LCD_Color) {
 	pd_api.graphics.setPixel(x, y, _c)
 }
 
@@ -831,7 +835,7 @@ graphics_draw_round_rect :: #force_inline proc "contextless" (
 	height: i32,
 	radius: i32,
 	lineWidth: i32,
-	color: LCDColor,
+	color: LCD_Color,
 ) {
 	pd_api.graphics.drawRoundRect(x, y, width, height, radius, lineWidth, color)
 }
@@ -842,7 +846,7 @@ graphics_fill_round_rect :: #force_inline proc "contextless" (
 	width: i32,
 	height: i32,
 	radius: i32,
-	color: LCDColor,
+	color: LCD_Color,
 ) {
 	pd_api.graphics.fillRoundRect(x, y, width, height, radius, color)
 }
@@ -1727,7 +1731,7 @@ sound_synth_play_note :: #force_inline proc "contextless" (
 
 sound_synth_play_midi_note :: #force_inline proc "contextless" (
 	synth: ^PD_Synth,
-	note: MIDINote,
+	note: MIDI_Note,
 	vel: f32,
 	len: f32,
 	_when: u32,
@@ -2287,8 +2291,8 @@ sound_envelope_set_velocity_sensitivity :: #force_inline proc "contextless" (env
 sound_envelope_set_rate_scaling :: #force_inline proc "contextless" (
 	env: ^PD_Synth_Envelope,
 	scaling: f32,
-	start: MIDINote,
-	end: MIDINote,
+	start: MIDI_Note,
+	end: MIDI_Note,
 ) {
 	pd_api.sound.envelope.setRateScaling(env, scaling, start, end)
 }
@@ -2362,13 +2366,17 @@ sound_track_add_note_event :: #force_inline proc "contextless" (
 	track: ^Sequence_Track,
 	step: u32,
 	len: u32,
-	note: MIDINote,
+	note: MIDI_Note,
 	velocity: f32,
 ) {
 	pd_api.sound.track.addNoteEvent(track, step, len, note, velocity)
 }
 
-sound_track_remove_note_event :: #force_inline proc "contextless" (track: ^Sequence_Track, step: u32, note: MIDINote) {
+sound_track_remove_note_event :: #force_inline proc "contextless" (
+	track: ^Sequence_Track,
+	step: u32,
+	note: MIDI_Note,
+) {
 	pd_api.sound.track.removeNoteEvent(track, step, note)
 }
 
@@ -2416,7 +2424,7 @@ sound_track_get_note_at_index :: #force_inline proc "contextless" (
 	index: i32,
 	outStep: ^u32,
 	outLen: ^u32,
-	outNote: ^MIDINote,
+	outNote: ^MIDI_Note,
 	outVelocity: ^f32,
 ) -> i32 {
 	return pd_api.sound.track.getNoteAtIndex(track, index, outStep, outLen, outNote, outVelocity)
@@ -2441,8 +2449,8 @@ sound_instrument_free_instrument :: #force_inline proc "contextless" (inst: ^PD_
 sound_instrument_add_voice :: #force_inline proc "contextless" (
 	inst: ^PD_Synth_Instrument,
 	synth: ^PD_Synth,
-	rangeStart: MIDINote,
-	rangeEnd: MIDINote,
+	rangeStart: MIDI_Note,
+	rangeEnd: MIDI_Note,
 	transpose: f32,
 ) -> i32 {
 	return pd_api.sound.instrument.addVoice(inst, synth, rangeStart, rangeEnd, transpose)
@@ -2460,7 +2468,7 @@ sound_instrument_play_note :: #force_inline proc "contextless" (
 
 sound_instrument_play_midi_note :: #force_inline proc "contextless" (
 	inst: ^PD_Synth_Instrument,
-	note: MIDINote,
+	note: MIDI_Note,
 	vel: f32,
 	len: f32,
 	_when: u32,
@@ -2485,7 +2493,7 @@ sound_instrument_set_transpose :: #force_inline proc "contextless" (inst: ^PD_Sy
 
 sound_instrument_note_off :: #force_inline proc "contextless" (
 	inst: ^PD_Synth_Instrument,
-	note: MIDINote,
+	note: MIDI_Note,
 	_when: u32,
 ) {
 	pd_api.sound.instrument.noteOff(inst, note, _when)

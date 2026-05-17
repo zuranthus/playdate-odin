@@ -167,10 +167,10 @@ def parse_structs(content):
 
 
 def collect_type_names(content):
-    return set(re.findall(
-        r'^(\w+)\s*::\s*(?:struct|enum|distinct|bit_set|proc|union)\b',
-        content, re.MULTILINE,
-    ))
+    kind_re = r'^(\w+)\s*::\s*(?:struct|enum|distinct|bit_set|proc|union)\b'
+    alias_re = r'^(\w+)\s*::\s*[\^\[A-Za-z_]'
+    return (set(re.findall(kind_re, content, re.MULTILINE))
+            | set(re.findall(alias_re, content, re.MULTILINE)))
 
 
 def build_alias_map(type_names, skip=()):
