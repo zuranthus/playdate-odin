@@ -13,6 +13,7 @@ init_default_context :: proc "contextless" (pd: ^API) {
 		allocator              = heap_allocator(pd),
 		temp_allocator         = default_temp_allocator(),
 		logger                 = console_logger(pd),
+		random_generator       = default_random_generator(pd),
 		assertion_failure_proc = assertion_failure_proc,
 		user_ptr               = pd,
 	}
