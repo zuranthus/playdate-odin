@@ -46,7 +46,7 @@ Build your game with one of these commands:
 make simulator      # Build for simulator
 make simulator-run  # Build and launch in the Playdate Simulator
 make device         # Build for device
-make device-run     # device-deploy, then tail the device's serial log (Ctrl-C to stop)
+make device-run     # Build and launch on the device
 make clean          # Clean build files
 ```
 
