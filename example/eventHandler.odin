@@ -1,7 +1,6 @@
 package main
 
 import playdate "../playdate"
-import "core:log"
 
 @(export)
 eventHandler :: proc "c" (pd: ^playdate.API, event: playdate.PD_System_Event, arg: i32) -> i32 {
@@ -24,14 +23,4 @@ updateCallback :: proc "c" (ud: rawptr) -> i32 {
 	defer free_all(context.temp_allocator)
 
 	return onUpdate()
-}
-
-onInit :: proc() {
-	log.info("onInit called")
-}
-
-onUpdate :: proc() -> i32 {
-	log.info("onUpdate called")
-
-	return 1
 }
